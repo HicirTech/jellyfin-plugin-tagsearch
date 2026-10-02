@@ -10,6 +10,8 @@
     window.TagSearchClientLoaded = true;
 
     const PANEL_CLASS = 'tagSearchPanel';
+    const RESULTS = '#searchPage .searchResults';
+    const GRID = RESULTS + ' .itemsContainer.scrollSlider';
     // The page searches as you type, so a search counts as made only once its results have
     // been on screen this long; a shorter pause would record half-typed terms.
     const SETTLE_MS = 3000;
@@ -165,7 +167,17 @@
         '#searchPage .searchSuggestions > :not(.' + PANEL_CLASS + ') { display: none !important; }',
         '.' + PANEL_CLASS + ' { max-width: 40em; margin: 0 auto; padding: 0 1em; text-align: left; }',
         '.' + PANEL_CLASS + ' .tagSearchRow { display: flex; align-items: center; }',
-        '.' + PANEL_CLASS + ' .tagSearchRow a { flex-grow: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0.5em 0; }'
+        '.' + PANEL_CLASS + ' .tagSearchRow a { flex-grow: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0.5em 0; }',
+        // Results come as one horizontal row per type; lay each row out as a wrapping grid, the way
+        // a library shows its items. The cards stay the server's own; only their container changes.
+        RESULTS + ' [is="emby-scroller"] { overflow: visible !important; padding-left: 0 !important; padding-right: 0 !important; }',
+        RESULTS + ' .emby-scrollbuttons, ' + RESULTS + ' [is="emby-scrollbuttons"] { display: none !important; }',
+        GRID + ' { --tagSearchCard: 6.6em; display: grid !important; grid-template-columns: repeat(auto-fill, minmax(var(--tagSearchCard), 1fr));'
+            + ' white-space: normal !important; transform: none !important; width: auto !important; padding: 0 3.3%; }',
+        GRID + ':has(> .overflowBackdropCard) { --tagSearchCard: 12em; }',
+        GRID + ' > .card { width: auto !important; }',
+        '@media (min-width: 50em) { ' + GRID + ' { --tagSearchCard: 9em; } ' + GRID + ':has(> .overflowBackdropCard) { --tagSearchCard: 16em; } }',
+        '@media (min-width: 100em) { ' + GRID + ' { --tagSearchCard: 11em; } ' + GRID + ':has(> .overflowBackdropCard) { --tagSearchCard: 20em; } }'
     ].join('\n');
     document.head.appendChild(style);
 
