@@ -6,10 +6,12 @@ targetAbi: "12.0.0.0"
 framework: "net10.0"
 overview: "Search the whole library by tags, genres, people and studios"
 description: >
-  Search every library at once by genre, tag, actor, director and studio.
+  Type tags separated by commas into the search box of any client to find the items
+  that carry all of them. The web client's search page lists your saved and recent searches.
 category: "General"
 owner: "HicirTech"
 artifacts:
 - "Jellyfin.Plugin.TagSearch.dll"
 changelog: >
-  Scaffold that loads on Jellyfin 12.x and does nothing else yet.
+  Comma-separated tag search where every tag must match, with exclusion and Traditional and
+  Simplified Chinese folding; saved and recent searches on the web client's search page.
