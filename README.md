@@ -26,7 +26,9 @@ and its genre filter returns items carrying any of the selected genres rather th
 In the web client, and in the official Android app, which loads the same web client, the search page shows
 your saved and recent searches in place of its random suggestions:
 
-- A search joins the recent list when you open one of its results.
+- A search joins the recent list once its results have stayed on screen for three seconds, when you press
+  Enter, or when you open one of its results. The page searches as you type, so a shorter pause would
+  record half-typed terms.
 - The star saves a search, so it stays when the recent list moves on.
 - Both lists are kept on the server per user, so every device shows the same ones.
 

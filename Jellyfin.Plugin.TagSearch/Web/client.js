@@ -1,5 +1,6 @@
 // Replaces the search page's random suggestions with the user's saved and recent searches.
-// A search counts as used, and joins the recent list, when one of its results is opened.
+// A search joins the recent list once its results have stayed on screen for a few seconds,
+// when Enter is pressed, or when one of its results is opened.
 (function () {
     'use strict';
 
@@ -9,12 +10,15 @@
     window.TagSearchClientLoaded = true;
 
     const PANEL_CLASS = 'tagSearchPanel';
+    // The page searches as you type, so a search counts as made only once its results have
+    // been on screen this long; a shorter pause would record half-typed terms.
+    const SETTLE_MS = 3000;
     const isChinese = (document.documentElement.lang || navigator.language || '').toLowerCase().indexOf('zh') === 0;
     const text = isChinese ? {
         saved: '已保存',
         recent: '最近搜索',
         noSaved: '点星标把常用的搜索保存在这里。',
-        noRecent: '搜索后点开一部影片，这次搜索就会出现在这里。',
+        noRecent: '搜索结果显示几秒后、按回车或点开一部影片时，这次搜索会记在这里。',
         save: '保存',
         unsave: '取消保存',
         remove: '删除',
@@ -23,7 +27,7 @@
         saved: 'Saved searches',
         recent: 'Recent searches',
         noSaved: 'Star a search to keep it here.',
-        noRecent: 'Open a result of a search and the search appears here.',
+        noRecent: 'A search is kept here once its results have been shown for a few seconds, when you press Enter, or when you open a result.',
         save: 'Save',
         unsave: 'Remove from saved',
         remove: 'Remove',
@@ -36,6 +40,20 @@
         return method === 'GET'
             ? client.getJSON(url)
             : client.ajax({ type: method, url: url, dataType: 'json' });
+    }
+
+    let lastRecorded = '';
+    let settleTimer = 0;
+
+    function record(query) {
+        if (!query || query === lastRecorded) {
+            return;
+        }
+        lastRecorded = query;
+        call('POST', 'Searches/Recent', query).catch(function (error) {
+            lastRecorded = '';
+            console.warn('TagSearch: could not record the search', error);
+        });
     }
 
     function currentQuery() {
@@ -166,9 +184,29 @@
     inject();
 
     document.addEventListener('click', function (event) {
-        const query = currentQuery();
-        if (query && event.target instanceof Element && event.target.closest('#searchPage .card')) {
-            call('POST', 'Searches/Recent', query);
+        if (event.target instanceof Element && event.target.closest('#searchPage .card')) {
+            record(currentQuery());
         }
+    }, true);
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter' && event.target instanceof Element && event.target.id === 'searchTextInput') {
+            record(event.target.value.trim());
+        }
+    }, true);
+
+    // The search box updates the URL with replaceState, which fires no navigation event, so the
+    // timer restarts on every keystroke instead and checks the results when it runs out.
+    document.addEventListener('input', function (event) {
+        if (!(event.target instanceof Element) || event.target.id !== 'searchTextInput') {
+            return;
+        }
+        window.clearTimeout(settleTimer);
+        settleTimer = window.setTimeout(function () {
+            const query = currentQuery();
+            if (query && document.querySelector('#searchPage .card')) {
+                record(query);
+            }
+        }, SETTLE_MS);
     }, true);
 })();
